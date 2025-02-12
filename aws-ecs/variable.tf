@@ -7,7 +7,7 @@ variable "region" {
 
 variable "app_name" {
   description = "The application name"
-  default     = "boldbi"
+  default     = "boldreports"
   type        = string
 }
 
@@ -43,7 +43,8 @@ variable "bold_services_hosting_environment" {
 }
 
 variable "app_base_url" {
-  description = "The base URL for the Bold BI application (e.g., https://example.com). If left empty, the script will use the ALB load balancer DNS for application hosting."
+  description = "The base URL for the Bold BI application (e.g., https://example.com)"
+  default     = ""  # Leave empty to use the ALB DNS
   type        = string
 }
 
@@ -74,71 +75,72 @@ variable "id_api_image_tag" {
   type        = string
 }
 
-variable "bi_web_image_tag" {
-  description = "Image tag for BI Web container"
+variable "reports_web_image_tag" {
+  description = "Image tag for Reports Web container"
   type        = string
 }
 
-variable "bi_api_image_tag" {
-  description = "Image tag for BI API container"
+variable "reports_api_image_tag" {
+  description = "Image tag for Reports API container"
   type        = string
 }
 
-variable "bi_jobs_image_tag" {
-  description = "Image tag for BI Jobs container"
+variable "reports_jobs_image_tag" {
+  description = "Image tag for Reports Jobs container"
   type        = string
 }
 
-variable "bi_dataservice_image_tag" {
-  description = "Image tag for BI Web container"
+variable "reports_dataservice_image_tag" {
+  description = "Image tag for Reports Web container"
+  type        = string
+}
+
+variable "reports_viewer_image_tag" {
+  description = "Image tag for Reports API container"
   type        = string
 }
 
 variable "bold_etl_image_tag" {
-  description = "Image tag for Bold ETL container"
+  description = "Image tag for Reports Jobs container"
   type        = string
 }
 
 # Startup Configuration Secrets
-variable "boldbi_secret_arn" {
+variable "boldreports_secret_arn" {
   description = "The ARN of the Secrets Manager secret for Bold BI configuration"
   type        = string
-  default     = "" # Forces user to provide a value
+  default     = null # Forces user to provide a value
 }
 
 variable "db_username" {
   description = "The PostgreSQL username"
   type        = string
-  nullable    = false
+  default     = null # Forces user to provide a value
 }
 
 variable "db_password" {
   description = "The PostgreSQL password"
   type        = string
-  sensitive   = true
-  nullable    = false
+  default     = null # Forces user to provide a value
 }
 
 variable "bold_unlock_key" {
   description = "The Bold services unlock key"
   type        = string
-  sensitive   = true
-  nullable    = false
+  default     = null # Forces user to provide a value
 }
 
-variable "boldbi_username" {
-  description = "The Bold BI admin username"
-  type        = string
-  nullable    = false
-}
+#variable "boldbi_username" {
+#  description = "The Bold BI username"
+#  type        = string
+#  default     = null # Forces user to provide a value
+#}
 
-variable "boldbi_user_password" {
-  description = "The Bold BI admin password"
-  type        = string
-  sensitive   = true
-  nullable    = false
-}
-
+#variable "boldbi_usr_password" {
+#  description = "The Bold BI user password"
+#  type        = string
+#  default     = null # Forces user to provide a value
+#}
 
 # ECS Configuration
 variable "task_cpu" {
@@ -171,15 +173,17 @@ variable "deployment_minimum_healthy_percent" {
   default     = 100
 }
 
-# Route 53 Configuration
-variable "route53_zone_id" {
-  description = "The Route 53 hosted zone ID. If left empty, Bold BI will not be configured with a custom domain."
+# SSL Configuration
+variable "certificate_arn" {
+  description = "ARN of the SSL/TLS certificate for HTTPS"
   type        = string
+  default     = ""  # Empty default allows for flexibility
+  sensitive   = true
 }
 
-# SSL Configuration
-variable "acm_certificate_arn" {
-  description = "The ARN of the SSL/TLS certificate for HTTPS. If left empty, SSL will not be enabled."
+# Route 53 Configuration
+variable "route53_zone_id" {
+  description = "Route 53 hosted zone ID"
   type        = string
-  sensitive   = true
+  default     = "" # Optional
 }
