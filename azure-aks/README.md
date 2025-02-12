@@ -98,14 +98,22 @@ Execute the following command to apply the Terraform script. When prompted, type
 ```sh
 terraform apply
 ```
-![terraform apply](./images/terraform-apply.png)
+![terraform apply](./images/apply.gif)
 
 After seeing the following message, you can access Bold Reports in your browser:
 
-Please wait until the startup process completes and avoid opening the URL in multiple tabs. The initial startup may take some time. Once the startup configuration is complete, Bold Reports will be ready for use.
+![url](./images/url.png)
+
+### 🔄 Notes
+🌟 Please Note the Azure PostgreSQL server Name and use this PostgreSQL server to configure the Bold Reports application.
+
+🌟 You can refer to the **[application startup](https://help.boldreports.com/enterprise-reporting/administrator-guide/application-startup/)** documentation.
+
+![Bold Reports](./images/bold-reports.gif)
 
 ## Destroy Bold Reports and Resources
 To destroy Bold Reports and all associated resources, run the following command from the same directory. When prompted, type "yes" to confirm the deletion.
 ```sh
 terraform destroy
 ```
+![terraform destroy](./images/destroy.gif)
