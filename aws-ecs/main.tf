@@ -10,9 +10,11 @@ locals {
   # Use environment variables, secrets, or user-provided inputs
   db_username       = var.db_username != null ? var.db_username : lookup(local.secret, "postgresql_username", null)
   db_password       = var.db_password != null ? var.db_password : lookup(local.secret, "postgresql_password", null)
-  #bold_unlock_key   = var.bold_unlock_key != null ? var.bold_unlock_key : lookup(local.secret, "bold_services_unlock_key", null)
-  #boldreports_username   = var.boldreports_username != null ? var.boldreports_username : lookup(local.secret, "bold_services_user_email", null)
-  #boldreports_usr_password = var.boldreports_usr_password != null ? var.boldreports_usr_password : lookup(local.secret, "bold_services_user_password", null)
+  route53_zone_id = var.route53_zone_id != "" ? var.route53_zone_id : lookup(local.secret, "route53_zone_id", "")
+  acm_certificate_arn = var.acm_certificate_arn != "" ? var.acm_certificate_arn : lookup(local.secret, "acm_certificate_arn", "")
+  
+  # Determine protocol dynamically based on app_base_url
+  protocol = startswith(local.app_base_url, "https://") ? "https" : "http" 
 }
 
 # Define Resource provider.
@@ -1463,31 +1465,32 @@ resource "aws_lb_listener" "http" {
   port              = "80"
   protocol          = "HTTP"
 
-  # default_action {
-  #   type             = "redirect"
-  #   redirect {
-  #     protocol = "HTTPS"
-  #     port     = "443"
-  #     status_code = "HTTP_301"
-  #   }
-  # }
-
   default_action {
-    type             = "fixed-response"
-    fixed_response {
-      status_code = "200"
-      content_type = "text/plain"
-      message_body = "OK"
+    type             = "redirect"
+    redirect {
+      protocol = "HTTPS"
+      port     = "443"
+      status_code = "HTTP_301"
     }
   }
+
+  # default_action {
+  #   type             = "fixed-response"
+  #   fixed_response {
+  #     status_code = "200"
+  #     content_type = "text/plain"
+  #     message_body = "OK"
+  #   }
+  # }
+  depends_on = [aws_lb.ecs_alb]
 }
 
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.ecs_alb.arn
   port              = "443"
   protocol          = "HTTPS"
-  ssl_policy = "ELBSecurityPolicy-2016-08"
-  certificate_arn = var.certificate_arn
+  ssl_policy = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn = local.acm_certificate_arn
 
   default_action {
     type             = "fixed-response"
@@ -1497,7 +1500,9 @@ resource "aws_lb_listener" "https" {
       message_body = "OK"
     }
   }
+  depends_on = [aws_lb.ecs_alb]
 }
+
 # Create Target Groups for Each Service
 resource "aws_lb_target_group" "id_web_tg" {
   name        = "${var.app_name}-id-web-tg-${var.environment}"
