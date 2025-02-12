@@ -124,24 +124,6 @@ variable "db_password" {
   default     = null # Forces user to provide a value
 }
 
-#variable "bold_unlock_key" {
-#  description = "The Bold services unlock key"
-#  type        = string
-#  default     = null # Forces user to provide a value
-#}
-
-#variable "boldbi_username" {
-#  description = "The Bold BI username"
-#  type        = string
-#  default     = null # Forces user to provide a value
-#}
-
-#variable "boldbi_usr_password" {
-#  description = "The Bold BI user password"
-#  type        = string
-#  default     = null # Forces user to provide a value
-#}
-
 # ECS Configuration
 variable "task_cpu" {
   description = "CPU allocation for ECS container"
