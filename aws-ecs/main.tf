@@ -10,9 +10,9 @@ locals {
   # Use environment variables, secrets, or user-provided inputs
   db_username       = var.db_username != null ? var.db_username : lookup(local.secret, "postgresql_username", null)
   db_password       = var.db_password != null ? var.db_password : lookup(local.secret, "postgresql_password", null)
-  bold_unlock_key   = var.bold_unlock_key != null ? var.bold_unlock_key : lookup(local.secret, "bold_services_unlock_key", null)
-  boldreports_username   = var.boldreports_username != null ? var.boldreports_username : lookup(local.secret, "bold_services_user_email", null)
-  boldreports_usr_password = var.boldreports_usr_password != null ? var.boldreports_usr_password : lookup(local.secret, "bold_services_user_password", null)
+  #bold_unlock_key   = var.bold_unlock_key != null ? var.bold_unlock_key : lookup(local.secret, "bold_services_unlock_key", null)
+  #boldreports_username   = var.boldreports_username != null ? var.boldreports_username : lookup(local.secret, "bold_services_user_email", null)
+  #boldreports_usr_password = var.boldreports_usr_password != null ? var.boldreports_usr_password : lookup(local.secret, "bold_services_user_password", null)
 }
 
 # Define Resource provider.
