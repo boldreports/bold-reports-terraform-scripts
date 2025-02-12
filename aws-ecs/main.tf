@@ -461,43 +461,7 @@ resource "aws_ecs_task_definition" "id_ums_task" {
       {
         name  = "BOLD_SERVICES_USE_SITE_IDENTIFIER"
         value = var.bold_services_use_site_identifier
-      },
-      #{
-      #  name  = "BOLD_SERVICES_DB_TYPE"
-      #  value = "postgresql"
-      #},
-      #{
-      #  name  = "BOLD_SERVICES_DB_HOST"
-      #  value = aws_db_instance.postgresql.address
-      #},
-      #{
-      #  name  = "BOLD_SERVICES_POSTGRESQL_MAINTENANCE_DB"
-      #  value = "postgres"
-      #},
-      #{
-      #  name      = "BOLD_SERVICES_DB_USER"
-      #  value = local.db_username
-      #},
-      #{
-      #  name      = "BOLD_SERVICES_DB_PASSWORD"
-      #  value = local.db_password
-      #},
-      #{
-      #  name      = "BOLD_SERVICES_UNLOCK_KEY"
-      #  value = local.bold_unlock_key
-      #},
-      #{
-      #  name      = "BOLD_SERVICES_USER_EMAIL"
-      #  value = local.boldbi_username
-      #},
-      #{
-      #  name      = "BOLD_SERVICES_USER_PASSWORD"
-      #  value = local.boldbi_usr_password
-      #}
-      # {
-      #   name      = "BOLD_SERVICES_DB_NAME"
-      #   value = var.postgresql_db_name_arn
-      # }
+      }
     ]
     essential = true
     cpu       = var.task_cpu
