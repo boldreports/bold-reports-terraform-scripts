@@ -10,7 +10,7 @@ Before proceeding, ensure the following tools and resources are installed and av
 
 1. **Terraform CLI**  
    Install Terraform from the official guide: [Terraform Installation Guide](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
-2. **Azure Subscription with Azure Application Registry**
+2. [Azure Subscription](https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account) with An [Azure Application Registry](https://learn.microsoft.com/en-us/entra/identity-platform/howto-create-service-principal-portal)
    - Client ID
    - Client Secret
    - Tenant ID
@@ -47,32 +47,39 @@ cd bold-reports-terraform-scripts/azure-aks
 ### Step 3: Set Environment Variables
 Set up the following environment variables on your [local system](https://chlee.co/how-to-setup-environment-variables-for-windows-mac-and-linux/) as shown below:
 
+### 🔹 Provider Environment Variables
+
 | Variable Name               | Description                                       |
 |-----------------------------|---------------------------------------------------|
 | TF_VAR_azure_client_id *      | Azure Client ID for authentication                |
 | TF_VAR_azure_client_secret * | Azure Client secret for authentication            |
 | TF_VAR_azure_sub_id *        | Azure Subscription ID for authentication          |
 | TF_VAR_azure_tenant_id *     | Azure Tenant ID for authentication                |
+
+### 🔹 Application Environment Variables
+| Variable Name               | Description                                       |
+|-----------------------------|---------------------------------------------------|
 | TF_VAR_db_username *         | **Database username** <br> - db username must only contain characters and numbers.<br> - db username cannot be 'azure_superuser', 'azure_pg_admin', 'admin', 'administrator', 'root', 'guest', 'public' or start with 'pg_'.                             |
 | TF_VAR_db_password *         | **Database password** <br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.).<br> - Your password cannot contain all or part of the login name. Part of a login name is defined as three or more consecutive alphanumeric characters.                                 |
 | TF_VAR_app_base_url         | The base URL for the Bold Reports application (e.g., https://example.com).<br>If left empty, Azure DNS with randomly generated characters will be used for application hosting(e.g., http://abcd.eastus2.cloudapp.azure.com).<p><br> **Note:-**  If app_base_url is left empty, you must install Azure CLI on your machine for Azure DNS mapping.[Azure CLI Installation Guide](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)                                                |
 | TF_VAR_cloudflare_api_token | Cloudflare API Token for DNS mapping on cloudflare|
 | TF_VAR_cloudflare_zone_id   | Cloudflare zone ID for DNS mapping on cloudflare  |
-| TF_VAR_tls_certificate_path | For apply SSL creatificate on AKS cluster         | 
-| TF_VAR_tls_certificate_path | For apply SSL private key on AKS cluster          | 
+| TF_VAR_tls_certificate_path | For apply SSL creatificate on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.crt<br>**Linux**<br>/home/adminuser/ssl/test/domain.crt        | 
+| TF_VAR_tls_key_path | For apply SSL private key on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.key<br>**Linux**<br>/home/adminuser/ssl/test/domain.key         | 
 
-`Note: Variable name marked with * are mandatory.`
+### 🔄 Notes
+
+🌟 `*` marked variables are mandatory field .  
+🌟 If any environment variable is not set, Terraform will prompt you to enter it during execution.  
+🌟 Please open a new terminal or PowerShell session after setting the environment variable in the system to ensure the updated value is recognized.
 
 Variables after setting in system variables:
 
 ![system variable](./images/environment.png)
 
 If you need to change any infrastructure or application-level settings, refer to the `terraform.tfvars` file.
-
-If you do not set the secrets in either location, Terraform will prompt you for the values during execution.
-
 ### Step 4: Initialize Terraform
-Open PowerShell or Terminal from the `boldbi-terraform-scripts/azure-aks` directory and run the following command:
+Open PowerShell or Terminal from the `bold-reports-terraform-scripts/azure-aks` directory and run the following command:
 ```sh
 terraform init
 ```
