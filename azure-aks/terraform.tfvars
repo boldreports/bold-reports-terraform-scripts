@@ -27,8 +27,7 @@ storage_subnet_prefix = ["10.1.3.0/24"]
 
 ########################################################################################
 # Bold Reports Deployment
-bold_reports_namespace       = "bold-services"
-bold_reports_version         = "6.3.24"
-app_base_url            = ""
-tls_certificate_path    = ""
-tls_key_path            = ""
+boldreports_namespace       = "bold-services"
+boldreports_version         = "8.1.1"
+boldreports_secret_vault_name = ""
+boldreports_secret_vault_rg_name = ""

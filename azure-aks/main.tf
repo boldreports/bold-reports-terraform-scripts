@@ -17,6 +17,10 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "~> 3.0"
     }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = "~> 1.14.0"
+    }
   }
 }
 
@@ -28,6 +32,90 @@ provider "azurerm" {
   client_secret   = var.azure_client_secret
   tenant_id       = var.azure_tenant_id
 }
+
+# Retrieve Key Vault
+data "azurerm_key_vault" "bold_reports_secret" {
+  count               = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
+  name                = var.boldreports_secret_vault_name
+  resource_group_name = var.boldreports_secret_vault_rg_name
+}
+
+# Retrieve Storage Account Name from Key Vault Secret
+data "azurerm_key_vault_secret" "app-base-url" {
+  count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
+  name         = "app-base-url"  # Replace with your secret name in Key Vault
+  key_vault_id = data.azurerm_key_vault.bold_reports_secret[0].id
+}
+
+data "azurerm_key_vault_secret" "boldreports-email" {
+  count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
+  name         = "boldreports-email"  # Replace with your secret name in Key Vault
+  key_vault_id = data.azurerm_key_vault.bold_reports_secret[0].id
+}
+
+data "azurerm_key_vault_secret" "boldreports-password" {
+  count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
+  name         = "boldreports-password"  # Replace with your secret name in Key Vault
+  key_vault_id = data.azurerm_key_vault.bold_reports_secret[0].id
+}
+
+data "azurerm_key_vault_secret" "boldreports-unlock-key" {
+  count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
+  name         = "boldreports-unlock-key"  # Replace with your secret name in Key Vault
+  key_vault_id = data.azurerm_key_vault.bold_reports_secret[0].id
+}
+
+data "azurerm_key_vault_secret" "db-username" {
+  count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
+  name         = "db-username"  # Replace with your secret name in Key Vault
+  key_vault_id = data.azurerm_key_vault.bold_reports_secret[0].id
+}
+
+data "azurerm_key_vault_secret" "db-password" {
+  count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
+  name         = "db-password"  # Replace with your secret name in Key Vault
+  key_vault_id = data.azurerm_key_vault.bold_reports_secret[0].id
+}
+
+data "azurerm_key_vault_secret" "tls-certificate-path" {
+  count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
+  name         = "tls-certificate-path"  # Replace with your secret name in Key Vault
+  key_vault_id = data.azurerm_key_vault.bold_reports_secret[0].id
+}
+
+data "azurerm_key_vault_secret" "tls-key-path" {
+  count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
+  name         = "tls-key-path"  # Replace with your secret name in Key Vault
+  key_vault_id = data.azurerm_key_vault.bold_reports_secret[0].id
+}
+
+data "azurerm_key_vault_secret" "cloudflare-zone-id" {
+  count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
+  name         = "cloudflare-zone-id"  # Replace with your secret name in Key Vault
+  key_vault_id = data.azurerm_key_vault.bold_reports_secret[0].id
+}
+
+data "azurerm_key_vault_secret" "cloudflare-api-token" {
+  count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
+  name         = "cloudflare-api-token"  # Replace with your secret name in Key Vault
+  key_vault_id = data.azurerm_key_vault.bold_reports_secret[0].id
+}
+
+locals {
+  # Use the Key Vault secret if available, otherwise fallback to the provided variable or a default value
+  app_base_url          = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.app-base-url[0].value : coalesce(var.app_base_url, "https://${random_string.random_letters.result}.${var.location}.cloudapp.azure.com")
+  cloudflare_api_token  = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.cloudflare-api-token[0].value : coalesce(var.cloudflare_api_token, "dummytokenplaceholdedummytokenplaceholde")
+  cloudflare_zone_id    = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.cloudflare-zone-id[0].value : var.cloudflare_zone_id
+  boldreports_email          = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.boldreports-email[0].value : var.boldreports_email
+  boldreports_password       = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.boldreports-password[0].value : var.boldreports_password
+  boldreports_unlock_key     = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.boldreports-unlock-key[0].value : var.boldreports_unlock_key
+  db_username           = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.db-username[0].value : var.db_username
+  db_password           = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.db-password[0].value : var.db_password
+  tls_certificate_path  = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.tls-certificate-path[0].value : var.tls_certificate_path
+  tls_key_path          = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.tls-key-path[0].value : var.tls_key_path
+  output_app_base_url   = var.app_base_url != "" ? var.app_base_url : "https://${random_string.random_letters.result}.${var.location}.cloudapp.azure.com"
+} 
+
 
 # Generate a random three-digit number
 resource "random_integer" "random_suffix" {
@@ -44,7 +132,7 @@ resource "random_string" "random_letters" {
 
 # Cloudflare provider setup
 provider "cloudflare" {
-  api_token = var.cloudflare_api_token
+  api_token = local.cloudflare_api_token
 }
 
 provider "kubernetes" {
@@ -62,6 +150,15 @@ provider "helm" {
     client_key             = base64decode(azurerm_kubernetes_cluster.aks.kube_config.0.client_key)
   }
 }
+
+provider "kubectl" {
+  host                   = azurerm_kubernetes_cluster.aks.kube_config.0.host
+  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.aks.kube_config.0.cluster_ca_certificate)
+  client_certificate     = base64decode(azurerm_kubernetes_cluster.aks.kube_config.0.client_certificate)
+  client_key             = base64decode(azurerm_kubernetes_cluster.aks.kube_config.0.client_key)
+  load_config_file       = false # Prevents it from using ~/.kube/config
+}
+
 
 ########################################################################################
 # Resource Group
@@ -171,8 +268,8 @@ resource "azurerm_postgresql_flexible_server" "postgres" {
   resource_group_name    = azurerm_resource_group.rg.name
   location               = azurerm_resource_group.rg.location
   version                = var.postgres_version
-  administrator_login    = var.db_username
-  administrator_password = var.db_password
+  administrator_login    = local.db_username
+  administrator_password = local.db_password
   sku_name               = var.postgres_sku
   storage_mb             = var.postgres_storage_gb * 1024
   delegated_subnet_id    = azurerm_subnet.postgres_subnet.id
@@ -293,30 +390,86 @@ resource "helm_release" "nginx_ingress" {
   depends_on = [azurerm_kubernetes_cluster.aks]
 }
 
-locals {
-  app_base_url = var.app_base_url != "" ? var.app_base_url : "http://${random_string.random_letters.result}.${var.location}.cloudapp.azure.com"
+# Install cert manager using Helm
+resource "helm_release" "cert_manager" {
+  count      = local.cloudflare_zone_id == "" ? 1 : 0 
+  name       = "cert-manager"
+  namespace  = "cert-manager"
+  repository = "https://charts.jetstack.io"
+  chart      = "cert-manager"
+  version    = "v1.10.0" # Ensure this version is correct for the chart
+
+  create_namespace = true
+
+  set {
+    name  = "installCRDs"
+    value = "true" # Values should be strings in Terraform
+  }
+
+  set {
+    name  = "global.leaderElection.namespace"
+    value = "cert-manager"
+  }
+  depends_on = [azurerm_kubernetes_cluster.aks]
 }
 
+data "http" "nginx_issuer" {
+  url = "https://raw.githubusercontent.com/boldbi/boldbi-kubernetes/main/ssl-configuration/nginx-issuer.yaml"
+}
+
+# Replace the email placeholder dynamically
+locals {
+  issuer_yaml = replace(data.http.nginx_issuer.response_body, "<Your_valid_email_address>", local.boldreports_email)
+}
+
+# Apply the modified YAML as a kubectl_manifest
+resource "kubectl_manifest" "nginx_issuer_apply" {
+  count        = local.cloudflare_zone_id == "" ? 1 : 0 
+  yaml_body    = local.issuer_yaml
+  wait         = true
+  depends_on   = [helm_release.bold_reports]
+}
+
+resource "kubectl_manifest" "patch_ingress" {
+  count      = local.cloudflare_zone_id == "" ? 1 : 0 
+  yaml_body = <<EOT
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: boldreports-ingress
+  namespace: bold-services
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-prod"
+EOT
+  wait         = true
+  #wait_timeout = 300
+  depends_on   = [helm_release.bold_reports]
+}
 
 ########################################################################################
 # Install Bold Reports using Helm
 resource "helm_release" "bold_reports" {
   name       = "boldreports"
-  namespace  = var.bold_reports_namespace
+  namespace  = var.boldreports_namespace
   repository = "https://boldreports.github.io/bold-reports-kubernetes"
   chart      = "boldreports"
-  version    = var.bold_reports_version  # Ensure the version is compatible with your Kubernetes version
+  version    = var.boldreports_version  # Ensure the version is compatible with your Kubernetes version
 
   create_namespace = true
 
   set {
     name  = "namespace"
-    value = var.bold_reports_namespace
+    value = var.boldreports_namespace
   }
 
   set {
     name  = "appBaseUrl"
     value = local.app_base_url
+  }
+
+  set {
+    name  = "image.tag"
+    value =  var.boldreports_version
   }
 
   set {
@@ -334,6 +487,50 @@ resource "helm_release" "bold_reports" {
     value = "${azurerm_storage_account.storage.name}.file.core.windows.net" 
   }
 
+  set {
+    name  = "databaseServerDetails.dbType"
+    value = "postgresql" 
+  }
+
+  set {
+    name  = "databaseServerDetails.dbHost"
+    value =  azurerm_postgresql_flexible_server.postgres.fqdn
+  }
+
+  # set {
+  #   name  = "databaseServerDetails.dbPort"
+  #   value = "5432" 
+  # }
+
+  set {
+    name  = "databaseServerDetails.dbUser"
+    value = local.db_username 
+  }
+
+  set {
+    name  = "databaseServerDetails.dbPassword"
+    value =  local.db_password
+  }
+
+  set {
+    name  = "databaseServerDetails.dbSchema"
+    value = "public" 
+  }
+
+  set {
+    name  = "rootUserDetails.email"
+    value = local.boldreports_email 
+  }
+
+  set {
+    name  = "rootUserDetails.password"
+    value = local.boldreports_password 
+  }
+
+  set {
+    name  = "licenseKeyDetails.licenseKey"
+    value = local.boldreports_unlock_key
+  }
   depends_on = [
     helm_release.nginx_ingress,
     azurerm_private_dns_zone_virtual_network_link.postgres_dns_vnet_link,
@@ -353,9 +550,9 @@ data "kubernetes_service" "nginx_ingress_service" {
 }
 
 resource "cloudflare_record" "nginx_ingress" {
-  count   = var.cloudflare_zone_id != "" ? 1 : 0
-  zone_id = var.cloudflare_zone_id
-  name    = split(".", replace(replace(var.app_base_url , "https://", ""), "http://", ""))[0]
+  count   = local.cloudflare_zone_id != "" ? 1 : 0
+  zone_id = local.cloudflare_zone_id
+  name    = split(".", replace(replace(local.app_base_url , "https://", ""), "http://", ""))[0]
   value   = data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip
   type    = "A"  # A record for an IPv4 address
   ttl     = 300  # You can adjust the TTL as needed
@@ -373,7 +570,7 @@ locals {
 }
 
 resource "null_resource" "az_login" {
-  count   = var.cloudflare_zone_id == "" ? 1 : 0
+  count   = local.cloudflare_zone_id == "" ? 1 : 0
   provisioner "local-exec" {
     command = <<EOT
       az login --service-principal -t ${var.azure_tenant_id} -u ${var.azure_client_id} -p ${var.azure_client_secret}
@@ -383,7 +580,7 @@ resource "null_resource" "az_login" {
 }
 
 resource "null_resource" "set_subscrition" {
-  count   = var.cloudflare_zone_id == "" ? 1 : 0
+  count   = local.cloudflare_zone_id == "" ? 1 : 0
   provisioner "local-exec" {
     command = <<EOT
       az account set --subscription ${var.azure_sub_id}
@@ -393,7 +590,7 @@ resource "null_resource" "set_subscrition" {
 }
 
 resource "null_resource" "update_public_ip_dns" {
-  count   = var.cloudflare_zone_id == "" ? 1 : 0
+  count   = local.cloudflare_zone_id == "" ? 1 : 0
   provisioner "local-exec" {
     command = <<EOT
       az network public-ip update --resource-group MC_${azurerm_resource_group.rg.name}_${azurerm_kubernetes_cluster.aks.name}_${var.location}  --name ${local.matching_ip[0].name}  --dns-name ${random_string.random_letters.result}
@@ -405,33 +602,22 @@ resource "null_resource" "update_public_ip_dns" {
 ########################################################################################
 # Create Bold TLS Secret
 resource "kubernetes_secret" "bold_tls" {
-  count   = var.tls_certificate_path != "" && var.tls_key_path != "" ? 1 : 0
+  count   = local.tls_certificate_path != "" && local.tls_key_path != "" ? 1 : 0
   metadata {
     name      = "bold-tls"
     namespace = "bold-services"
   }
 
   data = {
-    "tls.crt" = file(var.tls_certificate_path)  # Path to the certificate file
-    "tls.key" = file(var.tls_key_path) # Path to the private key file
+    "tls.crt" = file(local.tls_certificate_path)  # Path to the certificate file
+    "tls.key" = file(local.tls_key_path) # Path to the private key file
   }
   type = "kubernetes.io/tls"
   depends_on = [helm_release.bold_reports]
 }
 
 ########################################################################################
-output "Line_1" {
-  value = "Your app base URL: ${local.app_base_url}"
-}
-
-output "Line_2" {
-  value = "Your Nginx Ingress IP address: ${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip}"
-}
-
-output "Line_3" {
-  value = "Your PostgerSQL Server: ${azurerm_postgresql_flexible_server.postgres.fqdn}"
-}
-
-output "NOTE" {
-  value = "If you have not mapped a domain, please map it to ${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip}."
+# output
+output "Output_Massage" {
+  value = var.boldreports_secret_vault_name == "" && var.boldreports_secret_vault_rg_name == "" ? "Your app base URL:${local.output_app_base_url}" : "Please use the app-base URL provided in your Azure Key Vault"
 }

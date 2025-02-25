@@ -1,8 +1,8 @@
-# General Variable
+# General Vars
 
 variable "app_name" {
   description = "The application name"
-  default     = "boldbi"
+  default     = "boldreports"
   type        = string
 }
 
@@ -134,22 +134,42 @@ variable "storage_subnet_prefix" {
 }
 
 ########################################################################################
-# Bold Reports Deployment
-variable "bold_reports_namespace" {
+# Bold BI Deployment
+variable "boldreports_namespace" {
   type        = string
-  description = "Bold Reports namespace"
+  description = "Bold BI namespace"
 }
 
-variable "bold_reports_version" {
+variable "boldreports_version" {
   type        = string
-  description = "Bold Reports Version"
+  description = "Bold BI Version"
 }
 
 variable "app_base_url" {
   type        = string
-  description = "The base URL for the Bold Reports application (e.g., https://example.com).If left empty, Azure DNS with randomly generated characters will be used for application hosting(e.g., http://abcd.eastus2.cloudapp.azure.com)."
+  description = "The base URL for the Bold BI application (e.g., https://example.com).If left empty, Azure DNS with randomly generated characters will be used for application hosting(e.g., http://abcd.eastus2.cloudapp.azure.com)."
 }
 
+variable "boldreports_unlock_key" {
+  description = "Enter Your Bold services unlock key **required for auto-deployment**"
+  type        = string 
+  sensitive   = true
+  default     = ""
+}
+
+variable "boldreports_email" {
+  description = "The Bold BI username **required for auto-deployment**"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "boldreports_password" {
+  description = "The Bold BI user password **required for auto-deployment**"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
 
 variable "tls_certificate_path" {
   description = "The path to the TLS certificate file"
@@ -176,4 +196,16 @@ variable "cloudflare_api_token" {
   type        = string
   default     = "dummytokenplaceholdedummytokenplaceholde"
   sensitive   = true
+}
+
+variable "boldreports_secret_vault_name" {
+  description = "Enter bold bi secret vault name"
+  type        = string
+  default     = ""
+}
+
+variable "boldreports_secret_vault_rg_name" {
+  description = "Enter bold bi secret vault Resource group name"
+  type        = string
+  default     = ""
 }
