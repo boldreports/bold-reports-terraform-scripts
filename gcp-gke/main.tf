@@ -418,7 +418,7 @@ resource "helm_release" "boldreports" {
 
 # Outputs
 output "boldreports_access_message" {
-  value = "Access the following URL in your browser to use Bold BI: ${var.app_base_url}"
+  value = "Access the following URL in your browser to use Bold Reports: ${var.app_base_url}"
 }
 
 # resource "google_compute_network_peering" "gke_vpc_peering" {
