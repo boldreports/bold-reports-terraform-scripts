@@ -77,25 +77,25 @@ variable "db_password" {
   nullable    = false
 }
 
-# Bold BI Application Variables
+# Bold Reports Application Variables
 variable "boldreports_namespace" {
-  description = "Bold BI deployment namespace"
+  description = "Bold Reports deployment namespace"
   type        = string
   default     = "bold-services"
 }
 
 variable "boldreports_version" {
   type        = string
-  description = "Bold BI Version"
+  description = "Bold Reports Version"
 }
 
 variable "app_base_url" {
-  description = "The base URL for the Bold BI application (e.g., https://example.com). If left empty, the script will use the ALB load balancer DNS for application hosting."
+  description = "The base URL for the Bold Reports application (e.g., https://example.com). If left empty, the script will use the ALB load balancer DNS for application hosting."
   type        = string
 }
 
 variable "install_optional_libs" {
-  description = "Comma-separated list of optional libraries for Bold BI"
+  description = "Comma-separated list of optional libraries for Bold Reports"
   type        = string
   default     = "mongodb,mysql,influxdb,snowflake,oracle,clickhouse,google"
 }
@@ -108,13 +108,13 @@ variable "boldreports_unlock_key" {
 }
 
 variable "boldreports_email" {
-  description = "The Bold BI admin username"
+  description = "The Bold Reports admin username"
   type        = string
   nullable    = false
 }
 
 variable "boldreports_password" {
-  description = "The Bold BI admin password"
+  description = "The Bold Reports admin password"
   type        = string
   sensitive   = true
   nullable    = false

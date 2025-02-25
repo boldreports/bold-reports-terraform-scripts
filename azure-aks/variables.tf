@@ -134,20 +134,20 @@ variable "storage_subnet_prefix" {
 }
 
 ########################################################################################
-# Bold BI Deployment
+# Bold Reports Deployment
 variable "boldreports_namespace" {
   type        = string
-  description = "Bold BI namespace"
+  description = "Bold Reports namespace"
 }
 
 variable "boldreports_version" {
   type        = string
-  description = "Bold BI Version"
+  description = "Bold Reports Version"
 }
 
 variable "app_base_url" {
   type        = string
-  description = "The base URL for the Bold BI application (e.g., https://example.com).If left empty, Azure DNS with randomly generated characters will be used for application hosting(e.g., http://abcd.eastus2.cloudapp.azure.com)."
+  description = "The base URL for the Bold Reports application (e.g., https://example.com).If left empty, Azure DNS with randomly generated characters will be used for application hosting(e.g., http://abcd.eastus2.cloudapp.azure.com)."
 }
 
 variable "boldreports_unlock_key" {
@@ -158,14 +158,14 @@ variable "boldreports_unlock_key" {
 }
 
 variable "boldreports_email" {
-  description = "The Bold BI username **required for auto-deployment**"
+  description = "The Bold Reports username **required for auto-deployment**"
   type        = string
   sensitive   = true
   default     = ""
 }
 
 variable "boldreports_password" {
-  description = "The Bold BI user password **required for auto-deployment**"
+  description = "The Bold Reports user password **required for auto-deployment**"
   type        = string
   sensitive   = true
   default     = ""
@@ -199,13 +199,13 @@ variable "cloudflare_api_token" {
 }
 
 variable "boldreports_secret_vault_name" {
-  description = "Enter bold bi secret vault name"
+  description = "Enter bold Reports secret vault name"
   type        = string
   default     = ""
 }
 
 variable "boldreports_secret_vault_rg_name" {
-  description = "Enter bold bi secret vault Resource group name"
+  description = "Enter bold Reports secret vault Resource group name"
   type        = string
   default     = ""
 }
