@@ -114,10 +114,10 @@ After seeing the following message, you can access Bold BI in your browser:
 
 Please wait until the startup process completes and avoid opening the URL in multiple tabs. The initial startup may take some time. Once the startup configuration is complete, Bold BI will be ready for use.
 
-![terraform apply](./images/boldbi.gif)
+![terraform apply](./images/boldreports.gif)
 
-## Destroy Bold BI and Resources
-To destroy Bold BI and all associated resources, run the following command from the same directory. When prompted, type "yes" to confirm the deletion.
+## Destroy Bold Reports and Resources
+To destroy Bold Reports and all associated resources, run the following command from the same directory. When prompted, type "yes" to confirm the deletion.
 ```sh
 terraform destroy
 ```
