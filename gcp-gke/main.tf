@@ -399,7 +399,7 @@ resource "helm_release" "boldreports" {
 
   set {
     name  = "rootUserDetails.email"
-    value = var.boldbi_email
+    value = var.boldreports_email
   }
 
   set {
