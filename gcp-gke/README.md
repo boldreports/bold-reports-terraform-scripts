@@ -1,6 +1,6 @@
-# Deploy Bold BI Using Terraform on GKE Cluster
+# Deploy Bold Reports Using Terraform on GKE Cluster
 
-This guide explains how to deploy Bold BI using a Terraform script. The script automates the creation of all necessary GCP resources and the deployment of Bold BI. Once the deployment is complete, you can copy and paste the `APP_URL` into your browser to start evaluating Bold BI.
+This guide explains how to deploy Bold Reports using a Terraform script. The script automates the creation of all necessary GCP resources and the deployment of Bold Reports. Once the deployment is complete, you can copy and paste the `APP_URL` into your browser to start evaluating Bold Reports.
 
 ---
 
@@ -20,8 +20,8 @@ Before proceeding, ensure the following tools and resources are installed and av
 The major resources created by the Terraform script:
 
 1. **Virtual Network (VPC) and Subnets** – For network configuration.
-2. **Google Kubernetes Engine (GKE) Cluster** – The core infrastructure for hosting Bold BI.
-3. **PostgreSQL Server** – The database for storing Bold BI configurations and data.
+2. **Google Kubernetes Engine (GKE) Cluster** – The core infrastructure for hosting Bold Reports.
+3. **PostgreSQL Server** – The database for storing Bold Reports configurations and data.
 4. **Filestore** – To store required application data.
 
 ---
@@ -32,13 +32,13 @@ The major resources created by the Terraform script:
 Clone the Terraform scripts repository using the following command:
 
 ```sh
- git clone https://github.com/boldbi/boldbi-terraform-scripts.git
+ git clone https://github.com/boldreports/bold-reports-terraform-scripts.git
 ```
 
 ### Step 2: Navigate to the Terraform Scripts Directory
 
 ```sh
-cd boldbi-terraform-scripts/gcp-gke
+cd bold-reports-terraform-scripts/gcp-gke
 ```
 
 ![Directory Structure](./images/directory-structure.png)
@@ -56,10 +56,10 @@ Additionally, you need to add other required environment variables as local [sys
 |------------------------------|----------|---------------------------------------------------|
 | TF_VAR_db_username            | Yes     | **Database username** <br> - db username must only contain characters and numbers.<br> - db username cannot be 'admin', 'administrator', 'root', 'guest', 'public' or start with 'pg_'.
 | TF_VAR_db_password           | Yes      | **Database password** <br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.).<br> - Your password cannot contain all or part of the login name. Part of a login name is defined as three or more consecutive alphanumeric characters.                                 |
-| TF_VAR_boldbi_email          | Yes      | Bold BI admin Email                               |
-| TF_VAR_boldbi_password       | Yes      | **Bold BI admin password**<br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)|
-| TF_VAR_boldbi_unlock_key     | Yes      | Unlock key for Bold BI                            |
-| TF_VAR_app_base_url          | Yes      | The app_base_url variable is used as the base URL for the Bold BI application.(e.g., https://example.com).<br> It is mandatory and will be mapped to the Nginx server's IP using a Cloudflare domain, as configured by the Terraform script.<br>                                          |
+| TF_VAR_boldreports_email          | Yes      | Bold Reports admin Email                               |
+| TF_VAR_boldreports_password       | Yes      | **Bold Reports admin password**<br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)|
+| TF_VAR_boldreports_unlock_key     | Yes      | Unlock key for Bold Reports                            |
+| TF_VAR_app_base_url          | Yes      | The app_base_url variable is used as the base URL for the Bold Reports application.(e.g., https://example.com).<br> It is mandatory and will be mapped to the Nginx server's IP using a Cloudflare domain, as configured by the Terraform script.<br>                                          |
 | TF_VAR_cloudflare_api_token  | Yes      | Cloudflare API Token for DNS mapping on cloudflare|
 | TF_VAR_cloudflare_zone_id    | Yes      | Cloudflare zone ID for DNS mapping on cloudflare  |
 | TF_VAR_tls_certificate_path  | Yes      |For apply SSL creatificate on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.crt<br>**Linux**<br>/home/adminuser/ssl/test/domain.crt        | 
@@ -72,7 +72,7 @@ Variables after setting in system variables:
 If you need to change any infrastructure or application-level settings, refer to the `terraform.tfvars` file.
 
 ### Step 4: Initialize Terraform
-Open PowerShell or Terminal from the `boldbi-terraform-scripts/gcp-gke` directory and run the following command:
+Open PowerShell or Terminal from the `bold-reports-terraform-scripts/gcp-gke` directory and run the following command:
 ```sh
 terraform init
 ```
@@ -93,16 +93,16 @@ terraform apply
 ```
 ![terraform apply](./images/apply.gif)
 
-After seeing the following message, you can access Bold BI in your browser:
+After seeing the following message, you can access Bold Reports in your browser:
 
 ![URL](./images/url.png)
 
-Please wait until the startup process completes and avoid opening the URL in multiple tabs. The initial startup may take some time. Once the startup configuration is complete, Bold BI will be ready for use.
+Please wait until the startup process completes and avoid opening the URL in multiple tabs. The initial startup may take some time. Once the startup configuration is complete, Bold Reports will be ready for use.
 
-![terraform apply](./images/boldbi.gif)
+![terraform apply](./images/boldreports.gif)
 
-## Destroy Bold BI and Resources
-To destroy Bold BI and all associated resources, run the following command from the same directory. When prompted, type "yes" to confirm the deletion.
+## Destroy Bold Reports and Resources
+To destroy Bold Reports and all associated resources, run the following command from the same directory. When prompted, type "yes" to confirm the deletion.
 
 1. Uncomment the `google_compute_network_peering` resource in the `main.tf` file as shown below.
 
