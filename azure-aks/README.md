@@ -1,4 +1,4 @@
-# Deploy Bold BI Using Terraform on AKS Cluster
+# Deploy Bold Reports Using Terraform on AKS Cluster
 
 This guide explains how to deploy Bold BI using a Terraform script. The script automates the creation of all necessary Azure resources and the deployment of Bold BI. Once the deployment is complete, you can copy and paste the APP_URL into your browser to start evaluating Bold BI.
 
@@ -37,12 +37,12 @@ The Terraform script creates the following resources:
 Clone the Terraform scripts repository using the following command:
 
 ```sh
- git clone https://github.com/boldbi/boldbi-terraform-scripts.git
+ git clone https://github.com/boldreports/bold-reports-terraform-scripts.git
 ```
 
 ### Step 2: Navigate to the Terraform Scripts Directory
 ```sh
-cd boldbi-terraform-scripts/azure-aks
+cd bold-reports-terraform-scripts/azure-aks
 ```
 
 ### Step 3: Set Environment Variables
@@ -61,9 +61,9 @@ Other than this, we need to add the following environment variables either as a 
 |------------------------------|-------------------------------|----------|---------------------------------------------------|
 | TF_VAR_db_username           | db-username                   | Yes      | **Database username** <br> - db username must only contain characters and numbers.<br> - db username cannot be 'azure_superuser', 'azure_pg_admin', 'admin', 'administrator', 'root', 'guest', 'public' or start with 'pg_'.                             |
 | TF_VAR_db_password           | db-password                   | Yes      | **Database password** <br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.).<br> - Your password cannot contain all or part of the login name. Part of a login name is defined as three or more consecutive alphanumeric characters.                                 |
-| TF_VAR_boldbi_email          | boldbi-email                  | Yes      | Bold BI admin Email                               |
-| TF_VAR_boldbi_password       | boldbi-password               | Yes      | **Bold BI admin password**<br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)|
-| TF_VAR_boldbi_unlock_key     | boldbi-unlock-key             | Yes      | Unlock key for Bold BI                            |
+| TF_VAR_boldreports_email     | boldreports-email             | Yes      | Bold BI admin Email                               |
+| TF_VAR_boldreports_password  | boldreports-password          | Yes      | **Bold BI admin password**<br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)|
+| TF_VAR_boldreports_unlock_key| boldreports-unlock-key        | Yes      | Unlock key for Bold BI                            |
 | TF_VAR_app_base_url          | app-base-url                  | No       | The base URL for the Bold BI application (e.g., https://example.com).<br>If left empty, Azure DNS with randomly generated characters will be used for application hosting(e.g., http://abcd.eastus2.cloudapp.azure.com).<p><br> **Note:-**  If app_base_url is left empty, you must install Azure CLI on your machine for Azure DNS mapping.[Azure CLI Installation Guide](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)                                                |
 | TF_VAR_cloudflare_api_token  | cloudflare-api-token          | No       | Cloudflare API Token for DNS mapping on cloudflare|
 | TF_VAR_cloudflare_zone_id    | cloudflare-zone-id            | No       | Cloudflare zone ID for DNS mapping on cloudflare  |
@@ -87,7 +87,7 @@ If you need to change any infrastructure or application-level settings, refer to
 ![Secret Variable](./images/terraform_tfvars.png)
 
 ### Step 4: Initialize Terraform
-Open PowerShell or Terminal from the `boldbi-terraform-scripts/azure-aks` directory and run the following command:
+Open PowerShell or Terminal from the `bold-reports-terraform-scripts/azure-aks` directory and run the following command:
 ```sh
 terraform init
 ```
