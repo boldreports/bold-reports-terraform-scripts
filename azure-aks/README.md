@@ -55,7 +55,7 @@ To authenticate Terraform with your Azure account, add the following environment
 | TF_VAR_azure_sub_id         | Yes    | Azure Subscription ID for authentication          |
 | TF_VAR_azure_tenant_id      | Yes    | Azure Tenant ID for authentication                |
 
-Other than this, we need to add the following environment variables either as a local system variable or in [Azure Key Vault](https://learn.microsoft.com/en-us/azure/key-vault/secrets/quick-create-portal) as shown below:
+Other than this, we need to add the following environment variables either as a [local system](https://chlee.co/how-to-setup-environment-variables-for-windows-mac-and-linux/) variables or in [Azure Key Vault](https://learn.microsoft.com/en-us/azure/key-vault/secrets/quick-create-portal) as shown below:
 
 | system variable Name         | Azure Key Vault Variable Name | Required | Description                                       |
 |------------------------------|-------------------------------|----------|---------------------------------------------------|
