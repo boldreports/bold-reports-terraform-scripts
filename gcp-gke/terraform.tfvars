@@ -1,0 +1,11 @@
+gcp_project_id         = ""
+gcp_region             = "us-central1"
+app_name               = "bold"
+environment            = "demo"
+subnet_cidr_range      = "10.0.1.0/24"
+gke_initial_node_count = 1
+gke_min_node_count     = 1
+gke_max_node_count     = 3
+gke_machine_type       = "e2-standard-2"
+gke_disk_size_gb       = 50
+boldreports_version    = "8.1.1"
