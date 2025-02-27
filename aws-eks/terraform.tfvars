@@ -1,7 +1,7 @@
 # Provider Configuration
 region = "us-east-1"
-app_name = "test"
-environment = "repo"
+app_name = "reports"
+environment = "dev"
 vpc_cidr = "10.0.0.0/16"
 
 # These are the default client libraries used in Bold Reports. Update as needed.
