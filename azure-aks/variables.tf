@@ -154,21 +154,18 @@ variable "boldreports_unlock_key" {
   description = "Enter Your Bold services unlock key **required for auto-deployment**"
   type        = string 
   sensitive   = true
-  default     = ""
 }
 
 variable "boldreports_email" {
   description = "The Bold Reports username **required for auto-deployment**"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
 variable "boldreports_password" {
   description = "The Bold Reports user password **required for auto-deployment**"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
 variable "tls_certificate_path" {
@@ -206,6 +203,25 @@ variable "boldreports_secret_vault_name" {
 
 variable "boldreports_secret_vault_rg_name" {
   description = "Enter bold Reports secret vault Resource group name"
+  type        = string
+  default     = ""
+}
+
+# Azure DNS Zone
+variable "azure_domain_sub_id" {
+  description = "Enter your Domain Subscription ID"
+  type        = string
+  default     = ""
+}
+
+variable "azure_domain_name" {
+  description = "Enter your Domain Name"
+  type        = string
+  default     = ""
+}
+
+variable "azure_domain_rg_name" {
+  description = "Enter your Domain Resource group name"
   type        = string
   default     = ""
 }

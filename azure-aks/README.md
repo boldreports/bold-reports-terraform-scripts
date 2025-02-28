@@ -67,6 +67,9 @@ Other than this, we need to add the following environment variables either as a 
 | TF_VAR_app_base_url          | app-base-url                  | No       | The base URL for the Bold Reports application (e.g., https://example.com).<br>If left empty, Azure DNS with randomly generated characters will be used for application hosting(e.g., http://abcd.eastus2.cloudapp.azure.com).<p><br> **Note:-**  If app_base_url is left empty, you must install Azure CLI on your machine for Azure DNS mapping.[Azure CLI Installation Guide](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)                                                |
 | TF_VAR_cloudflare_api_token  | cloudflare-api-token          | No       | Cloudflare API Token for DNS mapping on cloudflare|
 | TF_VAR_cloudflare_zone_id    | cloudflare-zone-id            | No       | Cloudflare zone ID for DNS mapping on cloudflare  |
+| TF_VAR_azure_domain_sub_id   | azure-domain-sub-id           | No       | Azure Domain Subscription ID for DNS mapping on Azure DNS Zone |
+| TF_VAR_azure_domain_name     | azure-domain-name             | No       | Azure Domain Name for DNS mapping on Azure DNS Zone |
+| TF_VAR_azure_domain_rg_name  | azure-domain-rg-name          | No       | Azure Domain Resource group name for DNS mapping on Azure DNs Zone |
 | TF_VAR_tls_certificate_path  | tls-certificate-path          | No       |For apply SSL creatificate on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.crt<br>**Linux**<br>/home/adminuser/ssl/test/domain.crt        | 
 | TF_VAR_tls_key_path          | tls-key-path                  | No       | For apply SSL private key on AKS cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.key<br>**Linux**<br>/home/adminuser/ssl/test/domain.key         | 
 

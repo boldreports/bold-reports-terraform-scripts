@@ -24,13 +24,28 @@ terraform {
   }
 }
 
-# Azure Provider
+# Azure domain map (azure_domain_subscription)
+provider "azurerm" {
+  alias           = "azure_domain_subscription"
+  features {}
+  subscription_id = var.azure_domain_sub_id != "" ? var.azure_domain_sub_id : var.azure_sub_id
+}
+
+# Default Azure Provider (Using Variables)
 provider "azurerm" {
   features {}
   subscription_id = var.azure_sub_id
   client_id       = var.azure_client_id
   client_secret   = var.azure_client_secret
   tenant_id       = var.azure_tenant_id
+}
+
+# Fetch the existing Azure DNS Zone in Subscription A
+data "azurerm_dns_zone" "azure_zone" {
+  count               = var.azure_domain_name != "" && var.azure_domain_rg_name != "" ? 1 : 0
+  provider            = azurerm.azure_domain_subscription
+  name                = var.azure_domain_name
+  resource_group_name = var.azure_domain_rg_name
 }
 
 # Retrieve Key Vault
@@ -101,6 +116,24 @@ data "azurerm_key_vault_secret" "cloudflare-api-token" {
   key_vault_id = data.azurerm_key_vault.bold_reports_secret[0].id
 }
 
+data "azurerm_key_vault_secret" "azure-domain-sub-id" {
+  count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
+  name         = "azure-domain-sub-id"  # Replace with your secret name in Key Vault
+  key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
+}
+
+data "azurerm_key_vault_secret" "azure-domain-name" {
+  count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
+  name         = "azure-domain-name"  # Replace with your secret name in Key Vault
+  key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
+}
+
+data "azurerm_key_vault_secret" "azure-domain-rg-name" {
+  count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
+  name         = "azure-domain-rg-name"  # Replace with your secret name in Key Vault
+  key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
+}
+
 locals {
   # Use the Key Vault secret if available, otherwise fallback to the provided variable or a default value
   app_base_url          = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.app-base-url[0].value : coalesce(var.app_base_url, "https://${random_string.random_letters.result}.${var.location}.cloudapp.azure.com")
@@ -113,6 +146,11 @@ locals {
   db_password           = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.db-password[0].value : var.db_password
   tls_certificate_path  = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.tls-certificate-path[0].value : var.tls_certificate_path
   tls_key_path          = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.tls-key-path[0].value : var.tls_key_path
+
+  azure_domain_sub_id   = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.azure-domain-sub-id[0].value : var.azure_domain_sub_id
+  azure_domain_name     = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.azure-domain-name[0].value : var.azure_domain_name
+  azure_domain_rg_name  = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? data.azurerm_key_vault_secret.azure-domain-rg-name[0].value : var.azure_domain_rg_name
+
   output_app_base_url   = var.app_base_url != "" ? var.app_base_url : "https://${random_string.random_letters.result}.${var.location}.cloudapp.azure.com"
 } 
 
@@ -392,7 +430,7 @@ resource "helm_release" "nginx_ingress" {
 
 # Install cert manager using Helm
 resource "helm_release" "cert_manager" {
-  count      = local.cloudflare_zone_id == "" ? 1 : 0 
+  count      = local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0
   name       = "cert-manager"
   namespace  = "cert-manager"
   repository = "https://charts.jetstack.io"
@@ -424,14 +462,14 @@ locals {
 
 # Apply the modified YAML as a kubectl_manifest
 resource "kubectl_manifest" "nginx_issuer_apply" {
-  count        = local.cloudflare_zone_id == "" ? 1 : 0 
+  count        = local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0 
   yaml_body    = local.issuer_yaml
   wait         = true
   depends_on   = [helm_release.bold_reports]
 }
 
 resource "kubectl_manifest" "patch_ingress" {
-  count      = local.cloudflare_zone_id == "" ? 1 : 0 
+  count      = local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0 
   yaml_body = <<EOT
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -550,13 +588,23 @@ data "kubernetes_service" "nginx_ingress_service" {
 }
 
 resource "cloudflare_record" "nginx_ingress" {
-  count   = local.cloudflare_zone_id != "" ? 1 : 0
+  count   = local.cloudflare_zone_id != "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0
   zone_id = local.cloudflare_zone_id
   name    = split(".", replace(replace(local.app_base_url , "https://", ""), "http://", ""))[0]
   value   = data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip
   type    = "A"  # A record for an IPv4 address
   ttl     = 300  # You can adjust the TTL as needed
   proxied = false  # Set to true if you want Cloudflare's proxy (e.g., CDN, security features)
+}
+
+resource "azurerm_dns_a_record" "nginx_ingress" {
+  count               = local.cloudflare_zone_id == "" && var.azure_domain_name != "" && var.azure_domain_rg_name != "" ? 1 : 0
+  provider            = azurerm.azure_domain_subscription
+  name                = split(".", replace(replace(local.app_base_url , "https://", ""), "http://", ""))[0]
+  zone_name           = data.azurerm_dns_zone.azure_zone[count.index].name
+  resource_group_name = data.azurerm_dns_zone.azure_zone[count.index].resource_group_name
+  ttl                 = 300
+  records             = [data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip]
 }
 
 data "azurerm_public_ips" "all" {
@@ -570,7 +618,7 @@ locals {
 }
 
 resource "null_resource" "az_login" {
-  count   = local.cloudflare_zone_id == "" ? 1 : 0
+  count   = local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0
   provisioner "local-exec" {
     command = <<EOT
       az login --service-principal -t ${var.azure_tenant_id} -u ${var.azure_client_id} -p ${var.azure_client_secret}
@@ -580,7 +628,7 @@ resource "null_resource" "az_login" {
 }
 
 resource "null_resource" "set_subscrition" {
-  count   = local.cloudflare_zone_id == "" ? 1 : 0
+  count   = local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0
   provisioner "local-exec" {
     command = <<EOT
       az account set --subscription ${var.azure_sub_id}
@@ -590,7 +638,7 @@ resource "null_resource" "set_subscrition" {
 }
 
 resource "null_resource" "update_public_ip_dns" {
-  count   = local.cloudflare_zone_id == "" ? 1 : 0
+  count   = local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0
   provisioner "local-exec" {
     command = <<EOT
       az network public-ip update --resource-group MC_${azurerm_resource_group.rg.name}_${azurerm_kubernetes_cluster.aks.name}_${var.location}  --name ${local.matching_ip[0].name}  --dns-name ${random_string.random_letters.result}
