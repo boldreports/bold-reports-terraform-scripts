@@ -1,5 +1,5 @@
 # Provider Variable
-variable "google_credentials_json" {
+variable "google_credentials_json_file_path" {
   description = "Path to Google Cloud credentials JSON file"
   type        = string
   sensitive   = true
