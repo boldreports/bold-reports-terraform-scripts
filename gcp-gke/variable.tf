@@ -57,6 +57,11 @@ variable "gke_disk_size_gb" {
   type        = number
 }
 
+variable "host_ip_address" {
+  description = "Enter your Host IP Address"
+  type        = string
+}
+
 # PostgreSQL Configuration
 variable "postgres_instance" {
   description = "Instance type for PostgreSQL server"

@@ -60,6 +60,7 @@ Additionally, you need to add other required environment variables as [local sys
 | TF_VAR_boldreports_password       | Yes      | **Bold Reports admin password**<br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)|
 | TF_VAR_boldreports_unlock_key     | Yes      | Unlock key for Bold Reports                            |
 | TF_VAR_app_base_url          | Yes      | The app_base_url variable is used as the base URL for the Bold Reports application.(e.g., https://example.com).<br> It is mandatory and will be mapped to the Nginx server's IP using a Cloudflare domain, as configured by the Terraform script.<br>                                          |
+| TF_VAR_host_ip_address       | Yes      | Enter your host machine's IP address to allow the GKE cluster to connect to your machine.|
 | TF_VAR_cloudflare_api_token  | Yes      | Cloudflare API Token for DNS mapping on cloudflare|
 | TF_VAR_cloudflare_zone_id    | Yes      | Cloudflare zone ID for DNS mapping on cloudflare  |
 | TF_VAR_tls_certificate_path  | Yes      |For apply SSL creatificate on GKE cluster <br>Example <br>**windows**<br>D:\\\SSL\\\test\\\domain.crt<br>**Linux**<br>/home/adminuser/ssl/test/domain.crt        | 
