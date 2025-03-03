@@ -216,13 +216,8 @@ resource "google_container_cluster" "gke_cluster" {
   # Master authorized networks configuration
   master_authorized_networks_config {
     cidr_blocks {
-        cidr_block   = "49.204.142.100/32"  # First allowed IP range
-        display_name = "Network 1"
-    }
-
-    cidr_blocks {
-        cidr_block   = "182.156.201.226/32"  # Second allowed IP range (single IP)
-        display_name = "Network 2"
+        cidr_block   = "${var.host_ip_address}/32"  # First allowed IP range
+        display_name = "User Host CDIR Blocks"
     }
   }
 
