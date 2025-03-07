@@ -29,6 +29,9 @@ provider "azurerm" {
   alias           = "azure_domain_subscription"
   features {}
   subscription_id = var.azure_domain_sub_id != "" ? var.azure_domain_sub_id : var.azure_sub_id
+  client_id       = var.azure_client_id
+  client_secret   = var.azure_client_secret
+  tenant_id       = var.azure_tenant_id
 }
 
 # Default Azure Provider (Using Variables)
