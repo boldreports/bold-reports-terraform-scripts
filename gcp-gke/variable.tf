@@ -1,5 +1,5 @@
 # Provider Variable
-variable "google_credentials_json" {
+variable "google_credentials_json_file_path" {
   description = "Path to Google Cloud credentials JSON file"
   type        = string
   sensitive   = true
@@ -55,6 +55,11 @@ variable "gke_machine_type" {
 variable "gke_disk_size_gb" {
   description = "Disk size for GKE nodes in GB"
   type        = number
+}
+
+variable "host_ip_address" {
+  description = "Enter your Host IP Address"
+  type        = string
 }
 
 # PostgreSQL Configuration

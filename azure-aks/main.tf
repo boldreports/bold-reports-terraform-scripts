@@ -29,6 +29,9 @@ provider "azurerm" {
   alias           = "azure_domain_subscription"
   features {}
   subscription_id = var.azure_domain_sub_id != "" ? var.azure_domain_sub_id : var.azure_sub_id
+  client_id       = var.azure_client_id
+  client_secret   = var.azure_client_secret
+  tenant_id       = var.azure_tenant_id
 }
 
 # Default Azure Provider (Using Variables)
@@ -119,19 +122,19 @@ data "azurerm_key_vault_secret" "cloudflare-api-token" {
 data "azurerm_key_vault_secret" "azure-domain-sub-id" {
   count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
   name         = "azure-domain-sub-id"  # Replace with your secret name in Key Vault
-  key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
+  key_vault_id = data.azurerm_key_vault.bold_reports_secret[0].id
 }
 
 data "azurerm_key_vault_secret" "azure-domain-name" {
   count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
   name         = "azure-domain-name"  # Replace with your secret name in Key Vault
-  key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
+  key_vault_id = data.azurerm_key_vault.bold_reports_secret[0].id
 }
 
 data "azurerm_key_vault_secret" "azure-domain-rg-name" {
   count        = var.boldreports_secret_vault_name != "" && var.boldreports_secret_vault_rg_name != "" ? 1 : 0
   name         = "azure-domain-rg-name"  # Replace with your secret name in Key Vault
-  key_vault_id = data.azurerm_key_vault.bold_bi_secret[0].id
+  key_vault_id = data.azurerm_key_vault.bold_reports_secret[0].id
 }
 
 locals {
