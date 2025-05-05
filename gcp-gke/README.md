@@ -10,8 +10,8 @@ Before proceeding, ensure the following tools and resources are installed and av
 
 1. **Terraform CLI**  
    Install Terraform from the official guide: [Terraform Installation Guide](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
-2. **[Google Cloud Project](https://developers.google.com/workspace/guides/create-project) with a [Service Account](https://learn.microsoft.com/en-us/entra/identity-platform/howto-create-service-principal-portal)**  
-   Ensure you carefully review the Terraform script and provide the required permissions to the service account. Download the service account JSON key file for use in the Terraform script.
+2. **[Google Cloud Project](https://developers.google.com/workspace/guides/create-project) with a [Service Account](https://cloud.google.com/iam/docs/service-accounts-create)**  
+   Ensure you carefully review the Terraform script and grant the required permissions to the service account as defined in the [Policy.json](./policy.json) file. Download the service account JSON key file for use in the Terraform script.
 
 ---
 
