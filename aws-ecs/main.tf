@@ -324,19 +324,12 @@ resource "cloudflare_record" "alb_cname" {
   proxied = false  # Set to true if you want Cloudflare's proxy (e.g., CDN, security features)
 }
 
-# Updating key pair for ssh connection.
-resource "aws_key_pair" "ecs_key_pair" {
- key_name   = "ecs-key-pair-reports"
- public_key = file("~/.ssh/id_rsa.pub") # Replace with your public key path
-}
-
 # Launch Configuration for ECS EC2 Instances
 resource "aws_launch_configuration" "ecs_launch_config" {
   count = var.launch_type == "EC2" ? 1 : 0
   name          = "${var.app_name}-ecs-launch-config-${var.environment}"
   image_id      = data.aws_ami.ecs_optimized.id
   instance_type = var.instance_type # Change to t3.xlarge if needed
-  key_name      = aws_key_pair.ecs_key_pair.key_name
   iam_instance_profile = aws_iam_instance_profile.bold_ecs_instance_profile.name
 
   user_data = <<-EOF
@@ -1497,6 +1490,7 @@ resource "aws_ecs_service" "bold_etl_service_fargate" {
 
 # Create Listener for HTTP (80) and HTTPS (443)
 resource "aws_lb_listener" "http" {
+  count = local.protocol == "http" ? 1 : 0
   load_balancer_arn = aws_lb.ecs_alb.arn
   port              = "80"
   protocol          = "HTTP"
@@ -1508,6 +1502,7 @@ resource "aws_lb_listener" "http" {
   depends_on = [aws_lb.ecs_alb]
 }
 resource "aws_lb_listener" "https" {
+  count = local.protocol == "https" ? 1 : 0
   load_balancer_arn = aws_lb.ecs_alb.arn
   port              = "443"
   protocol          = "HTTPS"
