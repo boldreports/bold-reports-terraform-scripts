@@ -35,20 +35,20 @@ variable "instance_type" {
   default     = "t3.xlarge"
 }
 
-# Bold BI Application Variables
+# Bold Reports Application Variables
 variable "bold_services_hosting_environment" {
-  description = "The environment where Bold BI services are hosted (e.g., k8s)"
+  description = "The environment where Bold Reports services are hosted (e.g., k8s)"
   default     = "k8s"
   type        = string
 }
 
 variable "app_base_url" {
-  description = "The base URL for the Bold BI application (e.g., https://example.com). If left empty, the script will use the ALB load balancer DNS for application hosting."
+  description = "The base URL for the Bold Reports application (e.g., https://example.com). If left empty, the script will use the ALB load balancer DNS for application hosting."
   type        = string
 }
 
 variable "install_optional_libs" {
-  description = "Comma-separated list of optional libraries for Bold BI"
+  description = "Comma-separated list of optional libraries for Bold Reports"
   default     = "mongodb,mysql,influxdb,snowflake,oracle,clickhouse,google"
   type        = string
 }
