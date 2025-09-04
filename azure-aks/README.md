@@ -10,7 +10,11 @@ Before proceeding, ensure the following tools and resources are installed and av
 
 1. **Terraform CLI**  
    Install Terraform from the official guide: [Terraform Installation Guide](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
-2. **[Azure Subscription](https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account) with An [Azure Application Registry](https://learn.microsoft.com/en-us/entra/identity-platform/howto-create-service-principal-portal)**
+2. **Azure CLI**  
+   If you don’t provide a custom `app_base_url`, Azure CLI is required for automated DNS setup. Without it, terraform apply may fail.
+
+   Install Azure CLI from the official guide:  [Azure CLI Installation Guide](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
+3. **[Azure Subscription](https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account) with An [Azure Application Registry](https://learn.microsoft.com/en-us/entra/identity-platform/howto-create-service-principal-portal)**
    <br>Ensure your Azure Application Registry has the necessary permissions defined in the [Policy.json](policy.json) file.
    - Client ID
    - Client Secret
@@ -63,7 +67,7 @@ Other than this, we need to add the following environment variables either as a 
 | TF_VAR_db_password           | db-password                   | Yes      | **Database password** <br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.).<br> - Your password cannot contain all or part of the login name. Part of a login name is defined as three or more consecutive alphanumeric characters.                                 |
 | TF_VAR_boldreports_email     | boldreports-email             | Yes      | Bold Reports admin Email                               |
 | TF_VAR_boldreports_password  | boldreports-password          | Yes      | **Bold Reports admin password**<br> - Your password must be at least 8 characters and at most 128 characters.<br> - Your password must contain characters from three of the following categories<br> - English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)|
-| TF_VAR_boldreports_unlock_key| boldreports-unlock-key        | Yes      | Unlock key for Bold Reports                            |
+| TF_VAR_boldreports_unlock_key| boldreports-unlock-key        | Yes      | **Optional:-** Provide a license key for automatic activation. If you leave this empty, you can manually upload or select a trial license in the Bold Reports startup page after deployment.<br>   **Note:-** Trail license valid for 30 days alone.                      |
 | TF_VAR_app_base_url          | app-base-url                  | No       | The base URL for the Bold Reports application (e.g., https://example.com).<br>If left empty, Azure DNS with randomly generated characters will be used for application hosting(e.g., http://abcd.eastus2.cloudapp.azure.com).<p><br> **Note:-**  If app_base_url is left empty, you must install Azure CLI on your machine for Azure DNS mapping.[Azure CLI Installation Guide](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)                                                |
 | TF_VAR_cloudflare_api_token  | cloudflare-api-token          | No       | Cloudflare API Token for DNS mapping on cloudflare|
 | TF_VAR_cloudflare_zone_id    | cloudflare-zone-id            | No       | Cloudflare zone ID for DNS mapping on cloudflare  |
