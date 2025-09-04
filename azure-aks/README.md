@@ -77,18 +77,6 @@ The Terraform script creates the following resources:
 
 ---
 
-## Overview of the Script
-
-The Terraform script creates the following resources:
-
-1. **Resource Group** – A dedicated group for managing all resources.
-2. **Virtual Network (VNET) and Subnets** – For network configuration.
-3. **Azure Kubernetes Service (AKS) Cluster** – The core infrastructure for hosting Bold Reports.
-4. **PostgreSQL Server** – The database for storing Bold Reports configurations and data.
-5. **Storage Account with NFS** – To store Required application data.
-
----
-
 ## Deployment Steps
 
 ### Step 1: Clone the Terraform Scripts Repository
