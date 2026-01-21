@@ -323,6 +323,7 @@ resource "azurerm_postgresql_flexible_server" "postgres" {
   geo_redundant_backup_enabled = false
   backup_retention_days        = var.postgres_backup_days
   depends_on = [
+    azurerm_virtual_network.vnet,
     azurerm_subnet.postgres_subnet,
     azurerm_private_dns_zone.postgres_dns_zone
   ]
@@ -418,21 +419,29 @@ resource "helm_release" "nginx_ingress" {
   namespace  = "ingress-nginx"
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
-  version    = "4.0.10"  # Ensure the version is compatible with your Kubernetes version
+  version    = "4.0.10"
 
   create_namespace = true
 
-  set = [{
-    name  = "controller.replicaCount"
-    value = "1"  # Number of replicas for high availability
-  },
-  {
-    name  = "controller.service.externalTrafficPolicy"
-    value = "Local"
-  }]
+  timeout = 900        # ⬅️ IMPORTANT (15 minutes)
+  wait    = true
+  atomic = false       # ⬅️ Prevent rollback blocking destroy
+  cleanup_on_fail = true
+
+  set = [
+    {
+      name  = "controller.replicaCount"
+      value = "1"
+    },
+    {
+      name  = "controller.service.externalTrafficPolicy"
+      value = "Local"
+    }
+  ]
 
   depends_on = [azurerm_kubernetes_cluster.aks]
 }
+
 
 # Install cert manager using Helm
 resource "helm_release" "cert_manager" {
@@ -582,7 +591,7 @@ data "kubernetes_service" "nginx_ingress_service" {
     namespace = "ingress-nginx"
   }
 
-  depends_on = [helm_release.bold_reports]
+  depends_on = [helm_release.nginx_ingress]
 }
 
 resource "cloudflare_record" "nginx_ingress" {
