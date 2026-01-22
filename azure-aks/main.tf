@@ -462,7 +462,10 @@ resource "helm_release" "cert_manager" {
     name  = "global.leaderElection.namespace"
     value = "cert-manager"
   }]
-  depends_on = [azurerm_kubernetes_cluster.aks]
+  depends_on = [
+    azurerm_kubernetes_cluster.aks,
+    helm_release.nginx_ingress
+    ]
 }
 
 data "http" "nginx_issuer" {
@@ -577,6 +580,7 @@ resource "helm_release" "bold_reports" {
     value = local.boldreports_unlock_key
   }]
   depends_on = [
+    helm_release.cert_manager,
     helm_release.nginx_ingress,
     azurerm_private_dns_zone_virtual_network_link.postgres_dns_vnet_link,
     azurerm_postgresql_flexible_server.postgres
@@ -590,8 +594,25 @@ data "kubernetes_service" "nginx_ingress_service" {
     name      = "nginx-ingress-ingress-nginx-controller"
     namespace = "ingress-nginx"
   }
+}
 
-  depends_on = [helm_release.nginx_ingress]
+resource "kubectl_manifest" "bold_tls_certificate" {
+  yaml_body = <<EOT
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: bold-tls
+  namespace: bold-services
+spec:
+  secretName: bold-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: Issuer
+  dnsNames:
+    - ${split(".", replace(replace(local.app_base_url, "https://", ""), "http://", ""))[0]}
+EOT
+
+  depends_on = [helm_release.cert_manager]
 }
 
 resource "cloudflare_record" "nginx_ingress" {
