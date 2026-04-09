@@ -2,8 +2,25 @@ terraform {
   required_providers {
       cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 3.0"
+      version = "3.35.0"
     }
+    kubernetes = { 
+      source  = "hashicorp/kubernetes" 
+      version = "2.38.0" 
+    }
+    helm = { 
+      source  = "hashicorp/helm" 
+      version = "3.0.2" 
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.5"
+    }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = "~> 1.14.0"
+    }
+    
   }
 }
 
@@ -52,7 +69,7 @@ provider "kubernetes" {
 
 # Configure the Helm provider using the aliased Kubernetes provider
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = data.aws_eks_cluster.eks_cluster.endpoint
     cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks_cluster.certificate_authority[0].data)
     token                  = data.aws_eks_cluster_auth.eks_cluster_auth.token
@@ -329,15 +346,15 @@ resource "helm_release" "nginx_ingress" {
 
   create_namespace = true
 
-  set {
+  set =[
+    {
     name  = "controller.replicaCount"
     value = "1"  # Number of replicas for high availability
-  }
-
-  set {
+  },
+  {
     name  = "controller.service.externalTrafficPolicy"
     value = "Local"
-  }
+  }]
 
   depends_on = [aws_eks_cluster.eks_cluster, aws_eks_node_group.eks_nodes]
 }
@@ -395,15 +412,15 @@ resource "helm_release" "aws_efs_csi_driver" {
   create_namespace = false
 
   # Any additional Helm values can be set here
-  set {
+  set =[
+    {
     name  = "controller.serviceAccount.create"
     value = "true"
-  }
-
-  set {
+  },
+   {
     name  = "controller.serviceAccount.name"
     value = "efs-csi-controller-sa"
-  }
+  }]
 
   depends_on = [aws_eks_cluster.eks_cluster]  # Ensure the EKS cluster exists before installing
 }
@@ -434,78 +451,67 @@ resource "helm_release" "bold_reports" {
 
   create_namespace = true
 
-  set {
+  set =[
+    {
     name  = "namespace"
     value = var.boldreports_namespace
-  }
-
-  set {
+  },
+  {
     name  = "appBaseUrl"
     value = local.app_base_url != "" ? local.app_base_url : "http://${data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].hostname}"
-  }
-
-  set {
+  },
+  {
     name  = "image.tag"
     value =  var.boldreports_version
-  }
-  set {
+  },
+  {
     name  = "loadBalancer.type"
     value = "nginx"
-  }
-  set {
+  },
+  {
     name  = "clusterProvider"
     value = "eks" 
-  }
-
-  set {
+  },
+  {
     name  = "persistentVolume.eks.efsFileSystemId"
     value = aws_efs_file_system.app_data_efs.id
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbType"
     value = "postgresql" 
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbHost"
     value =  aws_db_instance.postgresql.address
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbPort"
     value = "5432" 
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbUser"
     value = local.db_username
-  }
-
-  set {
+  },
+   {
     name  = "databaseServerDetails.dbPassword"
     value =  local.db_password
-  }
-
-  set {
+  },
+  {
     name  = "databaseServerDetails.dbSchema"
     value = "public" 
-  }
-
-  set {
+  },
+  {
     name  = "rootUserDetails.email"
     value = local.boldreports_email
-  }
-
-  set {
+  },
+  {
     name  = "rootUserDetails.password"
     value = local.boldreports_password
-  }
-
-  set {
+  },
+  {
     name  = "licenseKeyDetails.licenseKey"
     value = local.boldreports_unlock_key
-  }
+  }]
   depends_on = [
     
   ]
