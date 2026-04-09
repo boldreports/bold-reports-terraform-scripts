@@ -9,7 +9,7 @@ install_optional_libs = "mongodb,mysql,influxdb,snowflake,oracle,clickhouse,goog
 
 node_instance_type = "t3.xlarge"
 
-boldreports_version = "8.1.1"
+boldreports_version = "13.1.26"
 
 instance_class = "db.t3.micro"
 # AWS secret manager ARN
