@@ -413,32 +413,57 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage_dns_vnet_link"
 }
 
 ########################################################################################
-# Install NGINX Ingress Controller using Helm
-resource "helm_release" "nginx_ingress" {
-  name       = "nginx-ingress"
-  namespace  = "ingress-nginx"
-  repository = "https://kubernetes.github.io/ingress-nginx"
-  chart      = "ingress-nginx"
-  version    = "4.0.10"
+# Install Traefik Ingressroute Controller using Helm
+resource "helm_release" "traefik" {
+  name       = "traefik"
+  repository = "https://traefik.github.io/charts"
+  chart      = "traefik"
+  namespace  = "traefik"
 
   create_namespace = true
 
-  timeout = 900        # ⬅️ IMPORTANT (15 minutes)
-  wait    = true
-  atomic = false       # ⬅️ Prevent rollback blocking destroy
-  cleanup_on_fail = true
-
   set = [
     {
-      name  = "controller.replicaCount"
-      value = "1"
+      name  = "ports.web.http.redirections.entryPoint.to"
+      value = "websecure"
     },
     {
-      name  = "controller.service.externalTrafficPolicy"
-      value = "Local"
+      name  = "ports.web.http.redirections.entryPoint.scheme"
+      value = "https"
+    },
+    {
+      name  = "ports.web.http.redirections.entryPoint.permanent"
+      value = "true"
+    },
+    {
+      name  = "ports.websecure.transport.respondingTimeouts.readTimeout"
+      value = "300s"
+    },
+    {
+      name  = "ports.websecure.transport.respondingTimeouts.writeTimeout"
+      value = "300s"
+    },
+    {
+      name  = "ports.websecure.transport.respondingTimeouts.idleTimeout"
+      value = "300s"
+    },
+    {
+      name  = "logs.access.enabled"
+      value = "true"
+    },
+    {
+      name  = "api.dashboard"
+      value = "true"
+    },
+    {
+      name  = "ingressRoute.dashboard.enabled"
+      value = "true"
+    },
+    {
+      name  = "ingressRoute.dashboard.entryPoints[0]"
+      value = "websecure"
     }
   ]
-
   depends_on = [azurerm_kubernetes_cluster.aks]
 }
 
@@ -464,42 +489,10 @@ resource "helm_release" "cert_manager" {
   }]
   depends_on = [
     azurerm_kubernetes_cluster.aks,
-    helm_release.nginx_ingress
+    helm_release.traefik
     ]
 }
 
-data "http" "nginx_issuer" {
-  url = "https://raw.githubusercontent.com/boldbi/boldbi-kubernetes/main/ssl-configuration/nginx-issuer.yaml"
-}
-
-# Replace the email placeholder dynamically
-locals {
-  issuer_yaml = replace(data.http.nginx_issuer.response_body, "<Your_valid_email_address>", local.boldreports_email)
-}
-
-# Apply the modified YAML as a kubectl_manifest
-resource "kubectl_manifest" "nginx_issuer_apply" {
-  count        = local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0 
-  yaml_body    = local.issuer_yaml
-  wait         = true
-  depends_on   = [helm_release.bold_reports]
-}
-
-resource "kubectl_manifest" "patch_ingress" {
-  count      = local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0 
-  yaml_body = <<EOT
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: boldreports-ingress
-  namespace: bold-services
-  annotations:
-    cert-manager.io/issuer: "letsencrypt-prod"
-EOT
-  wait         = true
-  #wait_timeout = 300
-  depends_on   = [helm_release.bold_reports]
-}
 
 ########################################################################################
 # Install Bold Reports using Helm
@@ -578,10 +571,15 @@ resource "helm_release" "bold_reports" {
   {
     name  = "licenseKeyDetails.licenseKey"
     value = local.boldreports_unlock_key
-  }]
+  },
+  {
+    name  = "loadBalancer.type"
+    value = "traefik"
+  }
+]
   depends_on = [
     helm_release.cert_manager,
-    helm_release.nginx_ingress,
+    helm_release.traefik,
     azurerm_private_dns_zone_virtual_network_link.postgres_dns_vnet_link,
     azurerm_postgresql_flexible_server.postgres
   ]
@@ -589,11 +587,18 @@ resource "helm_release" "bold_reports" {
 
 ########################################################################################
 #Domain Maping
-data "kubernetes_service" "nginx_ingress_service" {
+resource "time_sleep" "wait_for_traefik" {
+  depends_on = [helm_release.traefik]
+  create_duration = "30s"
+}
+
+data "kubernetes_service" "traefik_service" {
   metadata {
-    name      = "nginx-ingress-ingress-nginx-controller"
-    namespace = "ingress-nginx"
+    name      = "traefik"
+    namespace = "traefik"
   }
+
+  depends_on = [helm_release.bold_reports]
 }
 
 resource "kubectl_manifest" "bold_tls_certificate" {
@@ -612,27 +617,27 @@ spec:
     - ${split(".", replace(replace(local.app_base_url, "https://", ""), "http://", ""))[0]}
 EOT
 
-  depends_on = [helm_release.cert_manager]
+  depends_on = [helm_release.cert_manager,helm_release.bold_reports]
 }
 
-resource "cloudflare_record" "nginx_ingress" {
+resource "cloudflare_record" "traefik" {
   count   = local.cloudflare_zone_id != "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0
   zone_id = local.cloudflare_zone_id
   name    = split(".", replace(replace(local.app_base_url , "https://", ""), "http://", ""))[0]
-  value   = data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip
+  value   = data.kubernetes_service.traefik_service.status[0].load_balancer[0].ingress[0].ip
   type    = "A"  # A record for an IPv4 address
   ttl     = 300  # You can adjust the TTL as needed
   proxied = false  # Set to true if you want Cloudflare's proxy (e.g., CDN, security features)
 }
 
-resource "azurerm_dns_a_record" "nginx_ingress" {
+resource "azurerm_dns_a_record" "traefik" {
   count               = local.cloudflare_zone_id == "" && var.azure_domain_name != "" && var.azure_domain_rg_name != "" ? 1 : 0
   provider            = azurerm.azure_domain_subscription
   name                = split(".", replace(replace(local.app_base_url , "https://", ""), "http://", ""))[0]
   zone_name           = data.azurerm_dns_zone.azure_zone[count.index].name
   resource_group_name = data.azurerm_dns_zone.azure_zone[count.index].resource_group_name
   ttl                 = 300
-  records             = [data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip]
+  records             = [data.kubernetes_service.traefik_service.status[0].load_balancer[0].ingress[0].ip]
 }
 
 data "azurerm_public_ips" "all" {
@@ -642,7 +647,7 @@ data "azurerm_public_ips" "all" {
 
 # Find the public IP by filtering based on IP address
 locals {
-  matching_ip = [for ip in data.azurerm_public_ips.all.public_ips : ip if ip.ip_address == data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip]
+  matching_ip = [for ip in data.azurerm_public_ips.all.public_ips : ip if ip.ip_address == data.kubernetes_service.traefik_service.status[0].load_balancer[0].ingress[0].ip]
 }
 
 resource "null_resource" "az_login" {
