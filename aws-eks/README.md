@@ -89,6 +89,23 @@ Application Variables after setting in AWS Secrets Manager:
 
 - If you do not set the secrets in either location, Terraform will prompt you for the values during execution.
 
+### Ingress Controller (Load Balancer) Support
+
+This Terraform setup supports dynamic selection of the ingress controller using a variable.
+
+#### Supported Options
+
+- **nginx** (default)
+- **traefik**
+
+#### Configuration
+
+You can choose the ingress controller by setting the following variable in `terraform.tfvars`:
+
+```sh
+load_balancer_type = "nginx"   # "nginx" or "traefik"
+```
+
 ### Step 4: Initialize Terraform
 
 Open PowerShell or Terminal from the `boldreports-terraform-scripts/aws-EKS` directory and run the following command:
