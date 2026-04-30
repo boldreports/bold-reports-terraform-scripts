@@ -14,3 +14,6 @@ boldreports_version = "13.1.26"
 instance_class = "db.t3.micro"
 # AWS secret manager ARN
 boldreports_secret_arn = ""
+
+# Update preferred Load Balancer(nginx OR traefik)
+load_balancer_type = "traefik" # nginx OR traefik
