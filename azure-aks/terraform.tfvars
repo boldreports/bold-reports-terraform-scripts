@@ -28,6 +28,8 @@ storage_subnet_prefix = ["10.1.3.0/24"]
 ########################################################################################
 # Bold Reports Deployment
 boldreports_namespace       = "bold-services"
-boldreports_version         = "12.1.12"
+boldreports_version         = "13.1.26"
 boldreports_secret_vault_name = ""
 boldreports_secret_vault_rg_name = ""
+
+load_balancer_type = "traefik"
