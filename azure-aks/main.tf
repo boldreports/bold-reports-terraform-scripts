@@ -415,6 +415,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage_dns_vnet_link"
 ########################################################################################
 # Install NGINX Ingress Controller using Helm
 resource "helm_release" "nginx_ingress" {
+  count      = var.load_balancer_type == "nginx" ? 1 : 0
   name       = "nginx-ingress"
   namespace  = "ingress-nginx"
   repository = "https://kubernetes.github.io/ingress-nginx"
@@ -442,6 +443,62 @@ resource "helm_release" "nginx_ingress" {
   depends_on = [azurerm_kubernetes_cluster.aks]
 }
 
+########################################################################################
+
+# Install Traefik Ingress Controller using Helm
+resource "helm_release" "traefik_ingress" {
+  count      = var.load_balancer_type == "traefik" ? 1 : 0
+
+  name       = "traefik"
+  namespace  = "traefik"
+  repository = "https://traefik.github.io/charts"
+  chart      = "traefik"
+
+  create_namespace = true
+
+  set = [
+    {
+      name  = "service.type"
+      value = "LoadBalancer"
+    }
+  ]
+
+  depends_on = [azurerm_kubernetes_cluster.aks]
+}
+
+######################################################################################
+data "kubernetes_service" "ingress_service" {
+  count = var.load_balancer_type == "nginx" ? 1 : 0
+
+  metadata {
+    name      = "nginx-ingress-ingress-nginx-controller"
+    namespace = "ingress-nginx"
+  }
+
+  depends_on = [helm_release.nginx_ingress]
+}
+
+data "kubernetes_service" "traefik_service" {
+  count = var.load_balancer_type == "traefik" ? 1 : 0
+
+  metadata {
+    name      = "traefik"
+    namespace = "traefik"
+  }
+
+  depends_on = [helm_release.traefik_ingress]
+}
+
+##########################################################################################
+
+locals {
+  ingress_ip = (
+    var.load_balancer_type == "nginx" ?
+    data.kubernetes_service.ingress_service[0].status[0].load_balancer[0].ingress[0].ip :
+    data.kubernetes_service.traefik_service[0].status[0].load_balancer[0].ingress[0].ip
+  )
+  ingress_service = var.load_balancer_type == "nginx" ? data.kubernetes_service.ingress_service[0] : data.kubernetes_service.traefik_service[0]
+}
 
 # Install cert manager using Helm
 resource "helm_release" "cert_manager" {
@@ -469,24 +526,25 @@ resource "helm_release" "cert_manager" {
 }
 
 data "http" "nginx_issuer" {
+  count = var.load_balancer_type == "nginx" ? 1 : 0
   url = "https://raw.githubusercontent.com/boldbi/boldbi-kubernetes/main/ssl-configuration/nginx-issuer.yaml"
 }
 
 # Replace the email placeholder dynamically
 locals {
-  issuer_yaml = replace(data.http.nginx_issuer.response_body, "<Your_valid_email_address>", local.boldreports_email)
+  issuer_yaml = var.load_balancer_type == "nginx" ? replace(data.http.nginx_issuer[0].response_body, "<Your_valid_email_address>", local.boldreports_email) : ""
 }
 
 # Apply the modified YAML as a kubectl_manifest
 resource "kubectl_manifest" "nginx_issuer_apply" {
-  count        = local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0 
+  count        = var.load_balancer_type == "nginx" &&  local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0 
   yaml_body    = local.issuer_yaml
   wait         = true
   depends_on   = [helm_release.bold_reports]
 }
 
 resource "kubectl_manifest" "patch_ingress" {
-  count      = local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0 
+  count      = var.load_balancer_type == "nginx" &&  local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0 
   yaml_body = <<EOT
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -574,7 +632,10 @@ resource "helm_release" "bold_reports" {
     name  = "rootUserDetails.password"
     value = local.boldreports_password 
   },
-
+  {
+    name  = "loadBalancer.type"
+    value = var.load_balancer_type
+  },
   {
     name  = "licenseKeyDetails.licenseKey"
     value = local.boldreports_unlock_key
@@ -582,21 +643,15 @@ resource "helm_release" "bold_reports" {
   depends_on = [
     helm_release.cert_manager,
     helm_release.nginx_ingress,
+    helm_release.traefik_ingress,
     azurerm_private_dns_zone_virtual_network_link.postgres_dns_vnet_link,
     azurerm_postgresql_flexible_server.postgres
   ]
 }
 
-########################################################################################
-#Domain Maping
-data "kubernetes_service" "nginx_ingress_service" {
-  metadata {
-    name      = "nginx-ingress-ingress-nginx-controller"
-    namespace = "ingress-nginx"
-  }
-}
 
 resource "kubectl_manifest" "bold_tls_certificate" {
+  count      = var.load_balancer_type == "nginx" && local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0
   yaml_body = <<EOT
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -612,27 +667,27 @@ spec:
     - ${split(".", replace(replace(local.app_base_url, "https://", ""), "http://", ""))[0]}
 EOT
 
-  depends_on = [helm_release.cert_manager]
+  depends_on = [helm_release.cert_manager, helm_release.bold_reports]
 }
 
-resource "cloudflare_record" "nginx_ingress" {
-  count   = local.cloudflare_zone_id != "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0
+resource "cloudflare_record" "ingress_record" {
+  count   = (var.load_balancer_type == "nginx" || var.load_balancer_type == "traefik") && local.cloudflare_zone_id != "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0
   zone_id = local.cloudflare_zone_id
   name    = split(".", replace(replace(local.app_base_url , "https://", ""), "http://", ""))[0]
-  value   = data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip
+  value   = local.ingress_service.status[0].load_balancer[0].ingress[0].ip
   type    = "A"  # A record for an IPv4 address
   ttl     = 300  # You can adjust the TTL as needed
   proxied = false  # Set to true if you want Cloudflare's proxy (e.g., CDN, security features)
 }
 
-resource "azurerm_dns_a_record" "nginx_ingress" {
-  count               = local.cloudflare_zone_id == "" && var.azure_domain_name != "" && var.azure_domain_rg_name != "" ? 1 : 0
+resource "azurerm_dns_a_record" "ingress_record" {
+  count               = (var.load_balancer_type == "nginx" || var.load_balancer_type == "traefik") && local.cloudflare_zone_id == "" && var.azure_domain_name != "" && var.azure_domain_rg_name != "" ? 1 : 0
   provider            = azurerm.azure_domain_subscription
   name                = split(".", replace(replace(local.app_base_url , "https://", ""), "http://", ""))[0]
   zone_name           = data.azurerm_dns_zone.azure_zone[count.index].name
   resource_group_name = data.azurerm_dns_zone.azure_zone[count.index].resource_group_name
   ttl                 = 300
-  records             = [data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip]
+  records             = [local.ingress_service.status[0].load_balancer[0].ingress[0].ip]
 }
 
 data "azurerm_public_ips" "all" {
@@ -640,13 +695,12 @@ data "azurerm_public_ips" "all" {
   depends_on = [helm_release.bold_reports]
 }
 
-# Find the public IP by filtering based on IP address
 locals {
-  matching_ip = [for ip in data.azurerm_public_ips.all.public_ips : ip if ip.ip_address == data.kubernetes_service.nginx_ingress_service.status[0].load_balancer[0].ingress[0].ip]
+  matching_ip = (var.load_balancer_type == "nginx" || var.load_balancer_type == "traefik") ? [for ip in data.azurerm_public_ips.all.public_ips : ip if ip.ip_address == local.ingress_service.status[0].load_balancer[0].ingress[0].ip] : []
 }
 
 resource "null_resource" "az_login" {
-  count   = local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0
+  count   = (var.load_balancer_type == "nginx" || var.load_balancer_type == "traefik") && local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0
   provisioner "local-exec" {
     command = <<EOT
       az login --service-principal -t ${var.azure_tenant_id} -u ${var.azure_client_id} -p ${var.azure_client_secret}
@@ -656,7 +710,7 @@ resource "null_resource" "az_login" {
 }
 
 resource "null_resource" "set_subscrition" {
-  count   = local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0
+  count   = (var.load_balancer_type == "nginx" || var.load_balancer_type == "traefik") && local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0
   provisioner "local-exec" {
     command = <<EOT
       az account set --subscription ${var.azure_sub_id}
@@ -666,7 +720,7 @@ resource "null_resource" "set_subscrition" {
 }
 
 resource "null_resource" "update_public_ip_dns" {
-  count   = local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0
+  count   = (var.load_balancer_type == "nginx" || var.load_balancer_type == "traefik") && local.cloudflare_zone_id == "" && var.azure_domain_name == "" && var.azure_domain_rg_name == "" ? 1 : 0
   provisioner "local-exec" {
     command = <<EOT
       az network public-ip update --resource-group MC_${azurerm_resource_group.rg.name}_${azurerm_kubernetes_cluster.aks.name}_${var.location}  --name ${local.matching_ip[0].name}  --dns-name ${random_string.random_letters.result}
