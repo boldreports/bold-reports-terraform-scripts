@@ -7,4 +7,5 @@ gke_min_node_count     = 1
 gke_max_node_count     = 3
 gke_machine_type       = "e2-standard-2"
 gke_disk_size_gb       = 50
-boldreports_version    = "8.1.1"
+boldreports_version    = "13.1.26"
+load_balancer_type     = "traefik"

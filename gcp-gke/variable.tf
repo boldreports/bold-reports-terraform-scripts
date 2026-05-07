@@ -152,3 +152,14 @@ variable "tls_key_path" {
   type        = string
   default     = ""
 }
+
+variable "load_balancer_type" {
+  type        = string
+  description = "The ingress controller type to deploy (nginx or traefik)."
+  default     = "nginx"
+
+  validation {
+    condition     = contains(["nginx", "traefik"], var.load_balancer_type)
+    error_message = "load_balancer_type must be either 'nginx' or 'traefik'."
+  }
+}
